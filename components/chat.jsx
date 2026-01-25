@@ -1,17 +1,19 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { MessageCircle, X, Send, Loader2, User, Bot } from "lucide-react"
+import { MessageCircle, X, Send, Loader2, User, Bot, ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 export default function Chat() {
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false)
     const [messages, setMessages] = useState([
         { id: 1, role: 'assistant', content: '👋 Hi! How can I help you with this portfolio?' }
@@ -22,7 +24,6 @@ export default function Chat() {
 
     useEffect(() => {
         if (scrollRef.current) {
-            // Use setTimeout to ensure DOM is updated
             setTimeout(() => {
                 scrollRef.current.scrollTo({
                     top: scrollRef.current.scrollHeight,
@@ -45,9 +46,19 @@ export default function Chat() {
         setMessages(prev => [...prev, userMessage])
         setInput('')
         setIsLoading(true)
+        const context = document.body.innerText.replace(/\n/g, "");
 
-        // TODO: Implement your AI logic here
-        // Simulating a delay for now
+        const links = Array.from(document.querySelectorAll('a'))
+            .map(a => ({
+                text: a.innerText.trim(),
+                href: a.getAttribute('href')
+            }))
+            .filter(link => link.text && link.href && link.href.startsWith('/')); // Only internal links
+
+        const uniqueLinks = Array.from(new Set(links.map(JSON.stringify))).map(JSON.parse);
+        console.log("context ===========", context)
+        console.log("links sent to API:", uniqueLinks);
+        // TODO: give context here 
         try {
             const data = await fetch("api/completion", {
                 method: "POST",
@@ -55,16 +66,34 @@ export default function Chat() {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    prompt: input
+                    prompt: input,
+                    context: context,
+                    links: uniqueLinks
                 })
             })
 
             const res = await data.json()
             console.log("data :", data)
-            console.log("res :", res)
+            console.log("res full object:", res)
+            console.log("res.toolCalls:", res.toolCalls)
 
             if (!data.ok) {
                 throw new Error(res.error || "Failed to fetch AI response")
+            }
+
+            if (res.toolCalls) {
+                res.toolCalls.forEach(toolCall => {
+                    if (toolCall.toolName === 'changePage') {
+                        const args = toolCall.args || toolCall.input;
+                        console.log("Navigation tool called with args:", args);
+                        if (args && args.path) {
+                            console.log("Navigating to:", args.path);
+                            router.push(args.path);
+                        } else {
+                            console.error("Navigation failed: No path provided in arguments", toolCall);
+                        }
+                    }
+                });
             }
 
             setMessages(prev => [...prev, {
@@ -90,7 +119,7 @@ export default function Chat() {
             {isOpen && (
                 <Card className="w-[400px] sm:w-[500px] h-[600px] flex flex-col shadow-xl">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 h-10 border-b">
-                        <CardTitle className="text-sm font-medium">AI Assistant</CardTitle>
+                            <CardTitle className="text-sm font-medium">AI Assistant</CardTitle>
                         <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-4 w-8 rounded-full">
                             <X className="h-4 w-4" />
                             <span className="sr-only">Close</span>
