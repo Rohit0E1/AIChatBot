@@ -20,16 +20,19 @@ export const POST = async (req, res) => {
     INSTRUCTIONS:
     1. If the user asks a question and the answer is on the CURRENT PAGE, answer it immediately.
     2. If the answer is NOT on the current page, check the "AVAILABLE NAVIGATION LINKS".
-       - If you see a relevant link, use the 'changePage' tool.
-       - YOU MUST provide the 'path' argument from the link's href.
+       - If you see a relevant link, you MAY use the 'changePage' tool.
+       - IMPORTANT: You MUST provide the 'path' argument. Do NOT call the tool without a 'path'. 
+       - The 'path' MUST be one of the hrefs from the "AVAILABLE NAVIGATION LINKS" list.
        - Tell the user "I'm navigating to the [Page Name] page to check that for you."
-    3. Never make up facts. If you can't find it and can't find a link to it, say you don't know.
+    3. If you want to go back, use the 'goBack' tool.
+    4. If you can't find the answer and can't find a link, say you don't know.,
+    5. NEVER call 'changePage' with empty arguments.
   `;
         console.log("-------------------------", systemPrompt);
 
         console.log("links----------------", links);
         const { text, toolCalls } = await generateText({
-            model: google("gemini-2.5-flash"),
+            model: google("gemini-2.5-flash-lite"),
             system: systemPrompt,
             prompt: `${prompt}`,
             tools: {
@@ -52,7 +55,7 @@ export const POST = async (req, res) => {
         console.log("toolCalls-----------------", toolCalls);
         return Response.json({ text, toolCalls });
     } catch (error) {
-        console.log("error-----------------", error);
+        console.log("error-----------------", error.message);
         return Response.json({ error: error.message }, { status: 500 });
     }
 }
