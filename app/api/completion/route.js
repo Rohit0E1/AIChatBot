@@ -25,14 +25,18 @@ export const POST = async (req, res) => {
        - The 'path' MUST be one of the hrefs from the "AVAILABLE NAVIGATION LINKS" list.
        - Tell the user "I'm navigating to the [Page Name] page to check that for you."
     3. If you want to go back, use the 'goBack' tool.
-    4. If you can't find the answer and can't find a link, say you don't know.,
-    5. NEVER call 'changePage' with empty arguments.
+    4. If the user asks to see more content, read further, or scroll up/down generally, use the 'scrollPage' tool with direction 'up' or 'down'.
+    5. If the user asks to scroll to a specific section or project (e.g. "Go to projects", "Scroll to contact", "show me the last project"), use the 'scrollToSection' tool.
+       - IMPORTANT: You MUST provide the 'section' argument. For example: section: "last project" or section: "Projects" or section: "Contact".
+       - NEVER call 'scrollToSection' with empty arguments.
+    6. If you can't find the answer and can't find a link, say you don't know.
+    7. NEVER call any tool with empty arguments.
   `;
         console.log("-------------------------", systemPrompt);
 
         console.log("links----------------", links);
         const { text, toolCalls } = await generateText({
-            model: google("gemini-2.5-flash-lite"),
+            model: google("gemini-3-flash-preview"),
             system: systemPrompt,
             prompt: `${prompt}`,
             tools: {
@@ -47,6 +51,18 @@ export const POST = async (req, res) => {
                     description: 'Navigate back to the previous page',
                     parameters: z.object({
                         reason: z.string().describe('The reason for navigating back'),
+                    }),
+                }),
+                scrollPage: tool({
+                    description: 'Scrolls the page up or down to show more content. Use this when user says "scroll down", "scroll up", "show me more", etc.',
+                    parameters: z.object({
+                        direction: z.enum(['up', 'down']).describe('The direction to scroll'),
+                    }),
+                }),
+                scrollToSection: tool({
+                    description: 'Scrolls to a specific section, element, or project on the page. Use this when user asks to go to a specific section like "Projects", "Contact", or a specific project name like "show me the portfolio project" or "scroll to the last project".',
+                    parameters: z.object({
+                        section: z.string().describe('The name, ID, or text of the section/project to scroll to (e.g., "Projects", "Contact", "Portfolio Project", "last project")'),
                     }),
                 }),
             },

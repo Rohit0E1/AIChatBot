@@ -46,7 +46,24 @@ export default function Chat() {
         setMessages(prev => [...prev, userMessage])
         setInput('')
         setIsLoading(true)
-        const context = document.body.innerText.replace(/\n/g, "");
+        // Clone the body and clean it before extracting text
+        const bodyClone = document.body.cloneNode(true);
+
+        // Remove scripts, styles, and hidden elements
+        bodyClone.querySelectorAll('script, style, noscript, [hidden], [aria-hidden="true"]').forEach(el => el.remove());
+
+        // Remove the chat component
+        const chatElement = bodyClone.querySelector('.fixed.bottom-4.right-4');
+        if (chatElement) {
+            chatElement.remove();
+        }
+
+        // Remove Next.js internal elements
+        bodyClone.querySelectorAll('[data-nextjs-scroll-focus-boundary], [id^="__next"]').forEach(el => el.remove());
+
+        // Get only the main content area if it exists, otherwise use cleaned body
+        const mainContent = bodyClone.querySelector('main') || bodyClone;
+        const context = mainContent.innerText.replace(/\n/g, " ").replace(/\s+/g, " ").trim();
 
         const links = Array.from(document.querySelectorAll('a'))
             .map(a => ({
@@ -83,8 +100,8 @@ export default function Chat() {
 
             if (res.toolCalls) {
                 res.toolCalls.forEach(toolCall => {
+                    const args = toolCall.args || toolCall.input;
                     if (toolCall.toolName === 'changePage') {
-                        const args = toolCall.args || toolCall.input;
                         console.log("Navigation tool called with args:", args);
                         if (args && args.path) {
                             console.log("Navigating to:", args.path);
@@ -96,14 +113,134 @@ export default function Chat() {
                         console.log("Executing goBack tool");
                         router.back();
                     }
+                    else if (toolCall.toolName === 'scrollPage') {
+                        console.log("Executing scrollPage tool");
+                        // Default to 'down' if direction is not provided
+                        const direction = args?.direction || 'down';
+                        const scrollAmount = window.innerHeight * 0.8;
+                        const y = direction === 'down' ? scrollAmount : -scrollAmount;
+
+                        // Try multiple scroll methods
+                        try {
+                            window.scrollBy({ top: y, behavior: 'smooth' });
+                        } catch (e) {
+                            console.log("window.scrollBy failed trying alternate");
+                            document.documentElement.scrollBy({ top: y, behavior: 'smooth' });
+                            document.body.scrollBy({ top: y, behavior: 'smooth' });
+                        }
+
+                        console.log(`Scrolled ${direction}`);
+                    } else if (toolCall.toolName === 'scrollToSection') {
+                        console.log("Executing scrollToSection tool");
+
+                        // Handle missing section argument
+                        if (!args?.section) {
+                            console.warn("scrollToSection called without section argument, scrolling to bottom");
+                            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                            return;
+                        }
+
+                        const sectionName = args.section.toLowerCase();
+
+                        // Try to find element by ID first
+                        let element = document.getElementById(args.section) || document.getElementById(sectionName);
+
+                        // If not found by ID, try to find by text content in headings
+                        if (!element) {
+                            const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+                            element = headings.find(h => h.innerText.toLowerCase().includes(sectionName));
+                        }
+
+                        // If still not found, try to find in project cards or any element with matching text
+                        if (!element) {
+                            // Get all potential project/card elements
+                            const projectCards = document.querySelectorAll('[class*="project"], [class*="card"], [class*="grid"] > div, article, section > div');
+                            console.log("Found project cards:", projectCards.length);
+
+                            // Handle "last project" case
+                            if (sectionName.includes('last')) {
+                                if (projectCards.length > 0) {
+                                    element = projectCards[projectCards.length - 1];
+                                }
+                            } else if (sectionName.includes('first')) {
+                                if (projectCards.length > 0) {
+                                    element = projectCards[0];
+                                }
+                            } else {
+                                // Search for matching text in any visible element
+                                const allElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, [class*="project"], [class*="card"], article, section, div[class]');
+                                element = Array.from(allElements).find(el => el.innerText.toLowerCase().includes(sectionName));
+                            }
+                        }
+
+
+                        if (element) {
+                            console.log(`Found element:`, element);
+
+                            // Visual highlight for debugging
+                            const originalBorder = element.style.border;
+                            const originalBoxShadow = element.style.boxShadow;
+                            const originalTransition = element.style.transition;
+
+                            element.style.transition = 'all 0.5s ease';
+                            element.style.border = '2px solid #64ffda';
+                            element.style.boxShadow = '0 0 20px rgba(100, 255, 218, 0.5)';
+
+                            setTimeout(() => {
+                                element.style.border = originalBorder;
+                                element.style.boxShadow = originalBoxShadow;
+                                element.style.transition = originalTransition;
+                            }, 2000);
+
+                            // Try standard scrollIntoView
+                            try {
+                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            } catch (e) {
+                                console.warn("scrollIntoView failed, trying manual scroll");
+                                const rect = element.getBoundingClientRect();
+                                const absoluteTop = window.scrollY + rect.top - (window.innerHeight / 2);
+                                window.scrollTo({ top: absoluteTop, behavior: 'smooth' });
+                            }
+
+                            console.log(`Scrolled to section: ${args.section}`);
+                        } else {
+                            console.warn(`Section not found: ${args.section}`);
+                            // Fallback to top/bottom if "top" or "bottom" mentioned
+                            if (sectionName.includes('top')) {
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            } else if (sectionName.includes('bottom') || sectionName.includes('end')) {
+                                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                            }
+                        }
+                    }
                 });
             }
 
-            setMessages(prev => [...prev, {
-                id: Date.now() + Math.random(), // Ensure unique ID
-                role: 'assistant',
-                content: res.text
-            }])
+            // Only add message if there's text content (not just tool calls)
+            if (res.text && res.text.trim()) {
+                setMessages(prev => [...prev, {
+                    id: Date.now() + Math.random(),
+                    role: 'assistant',
+                    content: res.text
+                }])
+            } else if (res.toolCalls && res.toolCalls.length > 0) {
+                // Add a friendly confirmation message based on the tool used
+                const toolMessages = {
+                    scrollToSection: "Sure! Taking you there now... 🚀",
+                    scrollPage: "Scrolling for you... 📜",
+                    changePage: "Navigating to that page... 🧭",
+                    goBack: "Going back... ⬅️"
+                };
+
+                const toolCall = res.toolCalls[0];
+                const message = toolMessages[toolCall.toolName] || "Done! Action completed. ✅";
+
+                setMessages(prev => [...prev, {
+                    id: Date.now() + Math.random(),
+                    role: 'assistant',
+                    content: message
+                }])
+            }
             setIsLoading(false);
 
             console.log("response", res)
