@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Send, Mail, MapPin, Clock, Github, Linkedin, Twitter, CheckCircle } from "lucide-react"
+import { useAIForm } from "@/context/AIFormContext"
 
 const contactInfo = [
   { icon: Mail, label: "Email", value: "hello@rohitkumar.dev", href: "mailto:hello@rohitkumar.dev" },
@@ -24,6 +25,34 @@ export default function Contact() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+
+  const { registerField, unregisterField } = useAIForm()
+
+  // Refs for focusing/scrolling
+  const nameRef = useRef(null)
+  const emailRef = useRef(null)
+  const subjectRef = useRef(null)
+  const messageRef = useRef(null)
+
+  // Explicit setters for each field to match the registry expectation
+  const setName = (val) => setFormState(prev => ({ ...prev, name: val }))
+  const setEmail = (val) => setFormState(prev => ({ ...prev, email: val }))
+  const setSubject = (val) => setFormState(prev => ({ ...prev, subject: val }))
+  const setMessage = (val) => setFormState(prev => ({ ...prev, message: val }))
+
+  useEffect(() => {
+    registerField('name', setName, nameRef.current)
+    registerField('email', setEmail, emailRef.current)
+    registerField('subject', setSubject, subjectRef.current)
+    registerField('message', setMessage, messageRef.current)
+
+    return () => {
+      unregisterField('name')
+      unregisterField('email')
+      unregisterField('subject')
+      unregisterField('message')
+    }
+  }, [registerField, unregisterField])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -133,6 +162,7 @@ export default function Contact() {
                       Name
                     </label>
                     <input
+                      ref={nameRef}
                       type="text"
                       id="name"
                       name="name"
@@ -149,6 +179,7 @@ export default function Contact() {
                       Email
                     </label>
                     <input
+                      ref={emailRef}
                       type="email"
                       id="email"
                       name="email"
@@ -166,6 +197,7 @@ export default function Contact() {
                     Subject
                   </label>
                   <input
+                    ref={subjectRef}
                     type="text"
                     id="subject"
                     name="subject"
@@ -182,6 +214,7 @@ export default function Contact() {
                     Message
                   </label>
                   <textarea
+                    ref={messageRef}
                     id="message"
                     name="message"
                     value={formState.message}
