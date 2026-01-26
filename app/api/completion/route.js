@@ -29,8 +29,11 @@ export const POST = async (req, res) => {
     5. If the user asks to scroll to a specific section or project (e.g. "Go to projects", "Scroll to contact", "show me the last project"), use the 'scrollToSection' tool.
        - IMPORTANT: You MUST provide the 'section' argument. For example: section: "last project" or section: "Projects" or section: "Contact".
        - NEVER call 'scrollToSection' with empty arguments.
-    6. If you can't find the answer and can't find a link, say you don't know.
-    7. NEVER call any tool with empty arguments.
+    6. If the user asks to fill a form or input fields (e.g. "fill my email as test@test.com", "put John in the name field"), use the 'fillInput' tool.
+       - Provide the 'inputs' parameter which must be an array of objects with 'selector' and 'value'.
+       - Example: inputs: [{ selector: "email", value: "test@test.com" }]
+    7. If you can't find the answer and can't find a link, say you don't know.
+    8. NEVER call any tool with empty arguments.
   `;
         console.log("-------------------------", systemPrompt);
 
@@ -63,6 +66,15 @@ export const POST = async (req, res) => {
                     description: 'Scrolls to a specific section, element, or project on the page. Use this when user asks to go to a specific section like "Projects", "Contact", or a specific project name like "show me the portfolio project" or "scroll to the last project".',
                     parameters: z.object({
                         section: z.string().describe('The name, ID, or text of the section/project to scroll to (e.g., "Projects", "Contact", "Portfolio Project", "last project")'),
+                    }),
+                }),
+                fillInput: tool({
+                    description: 'Fills input fields on the page. Use this when the user asks to fill a form or set specific field values.',
+                    parameters: z.object({
+                        inputs: z.array(z.object({
+                            selector: z.string().describe('The ID, name, or label of the input field (e.g., "email", "name", "subject").'),
+                            value: z.string().describe('The value to fill into the input field.'),
+                        })).describe('Array of input fields to fill'),
                     }),
                 }),
             },

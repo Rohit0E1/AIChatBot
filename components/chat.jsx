@@ -12,8 +12,11 @@ import { cn } from "@/lib/utils"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
+import { useAIForm } from "@/context/AIFormContext"
+
 export default function Chat() {
     const router = useRouter();
+    const { fillField } = useAIForm();
     const [isOpen, setIsOpen] = useState(false)
     const [messages, setMessages] = useState([
         { id: 1, role: 'assistant', content: '👋 Hi! How can I help you with this portfolio?' }
@@ -212,6 +215,22 @@ export default function Chat() {
                                 window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                             }
                         }
+                    } else if (toolCall.toolName === 'fillInput') {
+                        console.log("Executing fillInput tool", args);
+                        const inputs = args.inputs || args.fields;
+
+                        if (inputs && Array.isArray(inputs)) {
+                            inputs.forEach(input => {
+                                const selector = input.selector.toLowerCase();
+                                const value = input.value;
+
+                                const success = fillField(selector, value);
+
+                                if (!success) {
+                                    console.warn(`Could not find active field for: ${selector}`);
+                                }
+                            });
+                        }
                     }
                 });
             }
@@ -229,7 +248,8 @@ export default function Chat() {
                     scrollToSection: "Sure! Taking you there now... 🚀",
                     scrollPage: "Scrolling for you... 📜",
                     changePage: "Navigating to that page... 🧭",
-                    goBack: "Going back... ⬅️"
+                    goBack: "Going back... ⬅️",
+                    fillInput: "Filling that form for you... ✍️"
                 };
 
                 const toolCall = res.toolCalls[0];

@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/next'
 import Navbar from '@/components/navbar'
 import { ThemeProvider } from '@/components/theme-provider'
 import Chat from '@/components/chat'
+import { AIFormProvider } from '@/context/AIFormContext'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -30,12 +31,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          <main className="min-h-screen pt-16">
-            {children}
-          </main>
-          <Chat />
-          <Analytics />
+          <AIFormProvider>
+            <Navbar />
+            <main className="min-h-screen pt-16">
+              {children}
+            </main>
+            <Chat />
+            <Analytics />
+          </AIFormProvider>
         </ThemeProvider>
       </body>
     </html>
