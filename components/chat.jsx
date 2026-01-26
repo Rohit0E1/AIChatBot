@@ -60,7 +60,7 @@ export default function Chat() {
         console.log("links sent to API:", uniqueLinks);
         // TODO: give context here 
         try {
-            const data = await fetch("api/completion", {
+            const data = await fetch("/api/completion", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -92,6 +92,9 @@ export default function Chat() {
                         } else {
                             console.error("Navigation failed: No path provided in arguments", toolCall);
                         }
+                    } else if (toolCall.toolName === 'goBack') {
+                        console.log("Executing goBack tool");
+                        router.back();
                     }
                 });
             }
@@ -119,7 +122,13 @@ export default function Chat() {
             {isOpen && (
                 <Card className="w-[400px] sm:w-[500px] h-[600px] flex flex-col shadow-xl">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 h-10 border-b">
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8 rounded-full">
+                                <ArrowLeft className="h-4 w-4" />
+                                <span className="sr-only">Back</span>
+                            </Button>
                             <CardTitle className="text-sm font-medium">AI Assistant</CardTitle>
+                        </div>
                         <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-4 w-8 rounded-full">
                             <X className="h-4 w-4" />
                             <span className="sr-only">Close</span>
