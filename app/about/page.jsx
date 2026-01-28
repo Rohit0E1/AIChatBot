@@ -1,7 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ArrowRight, Download, MapPin, Calendar, Briefcase, GraduationCap } from "lucide-react"
+import Focusable from "@/components/Focusable"
+import Clickable from "@/components/Clickable"
 
 const skills = {
   Frontend: ["React", "Next.js", "Vue.js", "JavaScript", "Tailwind CSS", "Framer Motion"],
@@ -34,6 +37,7 @@ const experience = [
 ]
 
 export default function About() {
+  const router = useRouter();
 
   return (
     <div className="relative">
@@ -65,20 +69,26 @@ export default function About() {
               </div>
 
               <div className="mt-8 flex flex-wrap gap-4">
-                <Link
-                  href="/contact"
+                <Clickable
+                  id="get-in-touch"
+                  label="Get In Touch"
+                  onClick={() => router.push('/contact')}
+                  as="button"
                   className="flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-medium text-accent-foreground transition-all hover:bg-accent/90"
                 >
                   Get In Touch
                   <ArrowRight className="h-4 w-4" />
-                </Link>
-                <a
-                  href="#"
+                </Clickable>
+                <Clickable
+                  id="download-cv"
+                  label="Download CV"
+                  onClick={() => alert('Downloading CV...')}
+                  as="button"
                   className="flex items-center gap-2 rounded-full border border-border px-6 py-3 font-medium transition-all hover:border-accent hover:bg-accent/5"
                 >
                   <Download className="h-4 w-4" />
                   Download CV
-                </a>
+                </Clickable>
               </div>
             </div>
 
@@ -133,95 +143,101 @@ export default function About() {
       </section>
 
       {/* Skills Section */}
-      <section className="border-y border-border/50 bg-card/30 px-6 py-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-12 text-center">
-            <h2 className="font-serif text-3xl font-bold sm:text-4xl">Skills & Technologies</h2>
-            <p className="mt-2 text-muted-foreground">Technologies I work with on a daily basis</p>
-          </div>
+      <Focusable id="skills">
+        <section className="border-y border-border/50 bg-card/30 px-6 py-20">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-12 text-center">
+              <h2 className="font-serif text-3xl font-bold sm:text-4xl">Skills & Technologies</h2>
+              <p className="mt-2 text-muted-foreground">Technologies I work with on a daily basis</p>
+            </div>
 
-          <div className="grid gap-8 md:grid-cols-3">
-            {Object.entries(skills).map(([category, items], categoryIndex) => (
-              <div
-                key={category}
-                className="animate-fade-in opacity-0 rounded-2xl border border-border bg-card p-6"
-                style={{ animationDelay: `${categoryIndex * 150}ms` }}
-              >
-                <h3 className="mb-4 text-lg font-semibold text-accent">{category}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {items.map((skill) => (
-                    <span
-                      key={skill}
-                      className="rounded-full border border-border bg-background px-3 py-1.5 text-sm transition-colors hover:border-accent hover:bg-accent/5"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Experience Section */}
-      <section className="px-6 py-20">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-12 flex items-center gap-3">
-            <Briefcase className="h-6 w-6 text-accent" />
-            <h2 className="font-serif text-3xl font-bold">Experience</h2>
-          </div>
-
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-0 top-0 bottom-0 w-px bg-border md:left-1/2 md:-translate-x-1/2" />
-
-            {experience.map((item, index) => (
-              <div
-                key={item.role}
-                className="animate-fade-in opacity-0 relative mb-12 pl-8 md:pl-0"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
-                <div className={`md:flex md:items-start ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
-                  {/* Dot */}
-                  <div className="absolute left-0 top-2 h-3 w-3 rounded-full border-2 border-accent bg-background md:left-1/2 md:-translate-x-1/2" />
-
-                  <div className={`md:w-1/2 ${index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"}`}>
-                    <span className="text-sm text-accent">{item.period}</span>
-                    <h3 className="mt-1 text-xl font-semibold">{item.role}</h3>
-                    <p className="text-muted-foreground">{item.company}</p>
-                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+            <div className="grid gap-8 md:grid-cols-3">
+              {Object.entries(skills).map(([category, items], categoryIndex) => (
+                <div
+                  key={category}
+                  className="animate-fade-in opacity-0 rounded-2xl border border-border bg-card p-6"
+                  style={{ animationDelay: `${categoryIndex * 150}ms` }}
+                >
+                  <h3 className="mb-4 text-lg font-semibold text-accent">{category}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {items.map((skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-full border border-border bg-background px-3 py-1.5 text-sm transition-colors hover:border-accent hover:bg-accent/5"
+                      >
+                        {skill}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Education Section */}
-      <section className="border-t border-border/50 bg-card/30 px-6 py-20">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-12 flex items-center gap-3">
-            <GraduationCap className="h-6 w-6 text-accent" />
-            <h2 className="font-serif text-3xl font-bold">Education</h2>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-8">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <h3 className="text-xl font-semibold">B.Tech Computer Science</h3>
-                <p className="text-muted-foreground">Top University</p>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Specialized in Software Engineering and Web Development. Graduated with honors and led multiple
-                  technical projects.
-                </p>
-              </div>
-              <span className="whitespace-nowrap text-sm text-accent">2015 - 2019</span>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </Focusable>
+
+      {/* Experience Section */}
+      <Focusable id="experience">
+        <section className="px-6 py-20">
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-12 flex items-center gap-3">
+              <Briefcase className="h-6 w-6 text-accent" />
+              <h2 className="font-serif text-3xl font-bold">Experience</h2>
+            </div>
+
+            <div className="relative">
+              {/* Timeline line */}
+              <div className="absolute left-0 top-0 bottom-0 w-px bg-border md:left-1/2 md:-translate-x-1/2" />
+
+              {experience.map((item, index) => (
+                <div
+                  key={item.role}
+                  className="animate-fade-in opacity-0 relative mb-12 pl-8 md:pl-0"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <div className={`md:flex md:items-start ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
+                    {/* Dot */}
+                    <div className="absolute left-0 top-2 h-3 w-3 rounded-full border-2 border-accent bg-background md:left-1/2 md:-translate-x-1/2" />
+
+                    <div className={`md:w-1/2 ${index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"}`}>
+                      <span className="text-sm text-accent">{item.period}</span>
+                      <h3 className="mt-1 text-xl font-semibold">{item.role}</h3>
+                      <p className="text-muted-foreground">{item.company}</p>
+                      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </Focusable>
+
+      {/* Education Section */}
+      <Focusable id="education">
+        <section className="border-t border-border/50 bg-card/30 px-6 py-20">
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-12 flex items-center gap-3">
+              <GraduationCap className="h-6 w-6 text-accent" />
+              <h2 className="font-serif text-3xl font-bold">Education</h2>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-card p-8">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">B.Tech Computer Science</h3>
+                  <p className="text-muted-foreground">Top University</p>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Specialized in Software Engineering and Web Development. Graduated with honors and led multiple
+                    technical projects.
+                  </p>
+                </div>
+                <span className="whitespace-nowrap text-sm text-accent">2015 - 2019</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </Focusable>
 
       {/* CTA Section */}
       <section className="px-6 py-20">

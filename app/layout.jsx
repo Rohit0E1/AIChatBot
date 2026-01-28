@@ -4,6 +4,9 @@ import Navbar from '@/components/navbar'
 import { ThemeProvider } from '@/components/theme-provider'
 import Chat from '@/components/chat'
 import { AIFormProvider } from '@/context/AIFormContext'
+import { FocusProvider } from '@/context/FocusContext'
+import { ClickProvider } from '@/context/ClickContext'
+import FocusOverlay from '@/components/FocusOverlay'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -32,12 +35,17 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AIFormProvider>
-            <Navbar />
-            <main className="min-h-screen pt-16">
-              {children}
-            </main>
-            <Chat />
-            <Analytics />
+            <FocusProvider>
+              <ClickProvider>
+                <Navbar />
+                <main className="min-h-screen pt-16">
+                  {children}
+                </main>
+                <FocusOverlay />
+                <Chat />
+                <Analytics />
+              </ClickProvider>
+            </FocusProvider>
           </AIFormProvider>
         </ThemeProvider>
       </body>

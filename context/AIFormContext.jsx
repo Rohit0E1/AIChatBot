@@ -13,10 +13,8 @@ export const useAIForm = () => {
 };
 
 export const AIFormProvider = ({ children }) => {
-    // Registry of setters: { [fieldName]: { setter: Function, ref: HTMLElement | null } }
     const [fieldRegistry, setFieldRegistry] = useState({});
 
-    // Register a field's setter function
     const registerField = useCallback((name, setter, ref = null) => {
         setFieldRegistry(prev => ({
             ...prev,
@@ -24,7 +22,6 @@ export const AIFormProvider = ({ children }) => {
         }));
     }, []);
 
-    // Unregister a field
     const unregisterField = useCallback((name) => {
         setFieldRegistry(prev => {
             const newRegistry = { ...prev };
@@ -33,7 +30,6 @@ export const AIFormProvider = ({ children }) => {
         });
     }, []);
 
-    // Fill a field by name
     const fillField = useCallback((name, value) => {
         const key = name.toLowerCase();
         const field = fieldRegistry[key];
@@ -42,12 +38,10 @@ export const AIFormProvider = ({ children }) => {
             console.log(`[AIFormContext] Filling field "${name}" with "${value}"`);
             field.setter(value);
 
-            // If we have a ref, we can also focus or scroll to it
             if (field.ref) {
-                // Visual highlight
                 const originalBorder = field.ref.style.border;
                 field.ref.style.transition = 'all 0.5s ease';
-                field.ref.style.border = '2px solid #64ffda'; // Green highlight
+                field.ref.style.border = '2px solid #64ffda';
                 setTimeout(() => {
                     field.ref.style.border = originalBorder;
                 }, 2000);

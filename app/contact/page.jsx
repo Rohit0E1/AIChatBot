@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Send, Mail, MapPin, Clock, Github, Linkedin, Twitter, CheckCircle } from "lucide-react"
 import { useAIForm } from "@/context/AIFormContext"
+import Focusable from "@/components/Focusable"
 
 const contactInfo = [
   { icon: Mail, label: "Email", value: "hello@rohitkumar.dev", href: "mailto:hello@rohitkumar.dev" },
@@ -28,13 +29,11 @@ export default function Contact() {
 
   const { registerField, unregisterField } = useAIForm()
 
-  // Refs for focusing/scrolling
   const nameRef = useRef(null)
   const emailRef = useRef(null)
   const subjectRef = useRef(null)
   const messageRef = useRef(null)
 
-  // Explicit setters for each field to match the registry expectation
   const setName = (val) => setFormState(prev => ({ ...prev, name: val }))
   const setEmail = (val) => setFormState(prev => ({ ...prev, email: val }))
   const setSubject = (val) => setFormState(prev => ({ ...prev, subject: val }))
@@ -58,14 +57,12 @@ export default function Contact() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate form submission
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     setIsSubmitting(false)
     setIsSubmitted(true)
     setFormState({ name: "", email: "", subject: "", message: "" })
 
-    // Reset success message after 5 seconds
     setTimeout(() => setIsSubmitted(false), 5000)
   }
 
@@ -95,159 +92,161 @@ export default function Contact() {
       </section>
 
       {/* Contact Section */}
-      <section className="px-6 pb-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid gap-12 lg:grid-cols-5">
-            {/* Contact Info */}
-            <div className="animate-fade-in opacity-0 lg:col-span-2">
-              <div className="sticky top-32">
-                <h2 className="font-serif text-2xl font-bold">Get in touch</h2>
-                <p className="mt-2 text-muted-foreground">
-                  I'm always excited to take on new projects and collaborate with creative people.
-                </p>
+      <Focusable id="contact">
+        <section className="px-6 pb-24">
+          <div className="mx-auto max-w-6xl">
+            <div className="grid gap-12 lg:grid-cols-5">
+              {/* Contact Info */}
+              <div className="animate-fade-in opacity-0 lg:col-span-2">
+                <div className="sticky top-32">
+                  <h2 className="font-serif text-2xl font-bold">Get in touch</h2>
+                  <p className="mt-2 text-muted-foreground">
+                    I'm always excited to take on new projects and collaborate with creative people.
+                  </p>
 
-                <div className="mt-8 space-y-6">
-                  {contactInfo.map((item) => (
-                    <div key={item.label} className="flex items-start gap-4">
-                      <div className="rounded-full border border-border bg-card p-3">
-                        <item.icon className="h-5 w-5 text-accent" />
+                  <div className="mt-8 space-y-6">
+                    {contactInfo.map((item) => (
+                      <div key={item.label} className="flex items-start gap-4">
+                        <div className="rounded-full border border-border bg-card p-3">
+                          <item.icon className="h-5 w-5 text-accent" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">{item.label}</p>
+                          {item.href ? (
+                            <a href={item.href} className="font-medium transition-colors hover:text-accent">
+                              {item.value}
+                            </a>
+                          ) : (
+                            <p className="font-medium">{item.value}</p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">{item.label}</p>
-                        {item.href ? (
-                          <a href={item.href} className="font-medium transition-colors hover:text-accent">
-                            {item.value}
-                          </a>
-                        ) : (
-                          <p className="font-medium">{item.value}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-12">
-                  <p className="text-sm text-muted-foreground">Find me on</p>
-                  <div className="mt-4 flex gap-3">
-                    {socialLinks.map((link) => (
-                      <a
-                        key={link.label}
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-full border border-border bg-card p-3 transition-all hover:border-accent hover:bg-accent/10"
-                        aria-label={link.label}
-                      >
-                        <link.icon className="h-5 w-5" />
-                      </a>
                     ))}
+                  </div>
+
+                  <div className="mt-12">
+                    <p className="text-sm text-muted-foreground">Find me on</p>
+                    <div className="mt-4 flex gap-3">
+                      {socialLinks.map((link) => (
+                        <a
+                          key={link.label}
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full border border-border bg-card p-3 transition-all hover:border-accent hover:bg-accent/10"
+                          aria-label={link.label}
+                        >
+                          <link.icon className="h-5 w-5" />
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Contact Form */}
-            <div className="animate-fade-in opacity-0 animation-delay-200 lg:col-span-3">
-              <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-8">
-                {isSubmitted && (
-                  <div className="mb-6 flex items-center gap-3 rounded-lg border border-accent/20 bg-accent/10 p-4 text-accent">
-                    <CheckCircle className="h-5 w-5" />
-                    <span>Thank you! Your message has been sent successfully.</span>
-                  </div>
-                )}
-
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="name" className="mb-2 block text-sm font-medium">
-                      Name
-                    </label>
-                    <input
-                      ref={nameRef}
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formState.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full rounded-lg border border-border bg-background px-4 py-3 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-                      placeholder="Your Name"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="email" className="mb-2 block text-sm font-medium">
-                      Email
-                    </label>
-                    <input
-                      ref={emailRef}
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formState.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full rounded-lg border border-border bg-background px-4 py-3 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-                      placeholder="your@email.com"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <label htmlFor="subject" className="mb-2 block text-sm font-medium">
-                    Subject
-                  </label>
-                  <input
-                    ref={subjectRef}
-                    type="text"
-                    id="subject"
-                    name="subject"
-                    value={formState.subject}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-lg border border-border bg-background px-4 py-3 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-                    placeholder="Project Inquiry"
-                  />
-                </div>
-
-                <div className="mt-6">
-                  <label htmlFor="message" className="mb-2 block text-sm font-medium">
-                    Message
-                  </label>
-                  <textarea
-                    ref={messageRef}
-                    id="message"
-                    name="message"
-                    value={formState.message}
-                    onChange={handleChange}
-                    required
-                    rows={6}
-                    className="w-full resize-none rounded-lg border border-border bg-background px-4 py-3 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-                    placeholder="Tell me about your project..."
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg bg-accent py-4 font-medium text-accent-foreground transition-all hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent-foreground/30 border-t-accent-foreground" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      Send Message
-                      <Send className="h-5 w-5" />
-                    </>
+              {/* Contact Form */}
+              <div className="animate-fade-in opacity-0 animation-delay-200 lg:col-span-3">
+                <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-8">
+                  {isSubmitted && (
+                    <div className="mb-6 flex items-center gap-3 rounded-lg border border-accent/20 bg-accent/10 p-4 text-accent">
+                      <CheckCircle className="h-5 w-5" />
+                      <span>Thank you! Your message has been sent successfully.</span>
+                    </div>
                   )}
-                </button>
-              </form>
+
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="name" className="mb-2 block text-sm font-medium">
+                        Name
+                      </label>
+                      <input
+                        ref={nameRef}
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formState.name}
+                        onChange={handleChange}
+                        required
+                        className="w-full rounded-lg border border-border bg-background px-4 py-3 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                        placeholder="Your Name"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="email" className="mb-2 block text-sm font-medium">
+                        Email
+                      </label>
+                      <input
+                        ref={emailRef}
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formState.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full rounded-lg border border-border bg-background px-4 py-3 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                        placeholder="your@email.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-6">
+                    <label htmlFor="subject" className="mb-2 block text-sm font-medium">
+                      Subject
+                    </label>
+                    <input
+                      ref={subjectRef}
+                      type="text"
+                      id="subject"
+                      name="subject"
+                      value={formState.subject}
+                      onChange={handleChange}
+                      required
+                      className="w-full rounded-lg border border-border bg-background px-4 py-3 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                      placeholder="Project Inquiry"
+                    />
+                  </div>
+
+                  <div className="mt-6">
+                    <label htmlFor="message" className="mb-2 block text-sm font-medium">
+                      Message
+                    </label>
+                    <textarea
+                      ref={messageRef}
+                      id="message"
+                      name="message"
+                      value={formState.message}
+                      onChange={handleChange}
+                      required
+                      rows={6}
+                      className="w-full resize-none rounded-lg border border-border bg-background px-4 py-3 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                      placeholder="Tell me about your project..."
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg bg-accent py-4 font-medium text-accent-foreground transition-all hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent-foreground/30 border-t-accent-foreground" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        Send Message
+                        <Send className="h-5 w-5" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </Focusable>
 
       {/* Map or decorative section */}
       <section className="border-t border-border/50 bg-card/30 px-6 py-20">

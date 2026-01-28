@@ -39,11 +39,13 @@ export const POST = async (req, res) => {
        - This will dim the rest of the page and zoom into the target section.
        - Provide the 'section' parameter with the section name.
        - Example: section: "skills" or section: "projects"
-    9. If you can't find the answer and can't find a link, say you don't know.
-    10. NEVER call any tool with empty arguments.
+    9. If the user asks to click a button or link (e.g. "click the submit button", "click Get In Touch", "press the download button"), use the 'clickElement' tool.
+       - Provide the 'target' parameter with the button/link text or label.
+       - Example: target: "Get In Touch" or target: "Submit" or target: "Download CV"
+    10. If you can't find the answer and can't find a link, say you don't know.
+    11. NEVER call any tool with empty arguments.
   `;
         console.log("-------------------------", systemPrompt);
-
         console.log("links----------------", links);
         const { text, toolCalls } = await generateText({
             model: google("gemini-2.5-flash"),
@@ -94,6 +96,12 @@ export const POST = async (req, res) => {
                     description: 'Focuses on and zooms into a specific section of the page, dimming everything else. Use this when the user asks to focus on, zoom into, or examine a section closely (e.g., "focus on skills", "zoom into projects", "let me see the experience section").',
                     parameters: z.object({
                         section: z.string().describe('The name of the section to focus on (e.g., "skills", "projects", "experience", "contact")'),
+                    }),
+                }),
+                clickElement: tool({
+                    description: 'Clicks a button or link on the page. Use this when the user asks to click, press, or activate a button or link (e.g., "click the submit button", "click Get In Touch", "press download").',
+                    parameters: z.object({
+                        target: z.string().describe('The text, label, or name of the button or link to click (e.g., "Get In Touch", "Submit", "Download CV", "View Projects")'),
                     }),
                 }),
             },
