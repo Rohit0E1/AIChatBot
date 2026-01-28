@@ -278,6 +278,76 @@ export default function Chat() {
                                 console.warn(`No element found containing: ${query}`);
                             }
                         }
+                    } else if (toolCall.toolName === 'focusSection') {
+                        console.log("Executing focusSection tool", args);
+                        const sectionName = args?.section;
+
+                        if (sectionName) {
+                            const lowerSection = sectionName.toLowerCase();
+
+                            // Find section by heading, ID, or class
+                            let targetElement = null;
+
+                            // Try by ID first
+                            targetElement = document.getElementById(sectionName) ||
+                                document.getElementById(lowerSection);
+
+                            // Try finding by heading text
+                            if (!targetElement) {
+                                const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+                                const matchingHeading = Array.from(headings).find(h =>
+                                    h.innerText.toLowerCase().includes(lowerSection)
+                                );
+                                // Get the parent section of the heading
+                                if (matchingHeading) {
+                                    targetElement = matchingHeading.closest('section') ||
+                                        matchingHeading.parentElement;
+                                }
+                            }
+
+                            // Try finding by section/article with matching content
+                            if (!targetElement) {
+                                const sections = document.querySelectorAll('section, article, [class*="section"]');
+                                targetElement = Array.from(sections).find(s =>
+                                    s.innerText.toLowerCase().includes(lowerSection)
+                                );
+                            }
+
+                            if (targetElement) {
+                                console.log(`Found section to focus:`, targetElement);
+
+                                // Create overlay
+                                const overlay = document.createElement('div');
+                                overlay.className = 'ai-focus-overlay';
+                                overlay.id = 'ai-focus-overlay';
+                                document.body.appendChild(overlay);
+
+                                // Add focused class to target
+                                targetElement.classList.add('ai-focused');
+
+                                // Scroll into view
+                                targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                                // Click anywhere to dismiss
+                                const dismissFocus = () => {
+                                    overlay.remove();
+                                    targetElement.classList.remove('ai-focused');
+                                    document.removeEventListener('click', dismissFocus);
+                                };
+
+                                // Auto-dismiss after 5 seconds or on click
+                                setTimeout(() => {
+                                    dismissFocus();
+                                }, 5000);
+
+                                // Allow click to dismiss after a short delay
+                                setTimeout(() => {
+                                    document.addEventListener('click', dismissFocus);
+                                }, 500);
+                            } else {
+                                console.warn(`Section not found: ${sectionName}`);
+                            }
+                        }
                     }
                 });
             }
@@ -297,7 +367,8 @@ export default function Chat() {
                     changePage: "Navigating to that page... 🧭",
                     goBack: "Going back... ⬅️",
                     fillInput: "Filling that form for you... ✍️",
-                    highlightText: "Highlighting that for you... ✨"
+                    highlightText: "Highlighting that for you... ✨",
+                    focusSection: "Focusing on that section... 🔍"
                 };
 
                 const toolCall = res.toolCalls[0];

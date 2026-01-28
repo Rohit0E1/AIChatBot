@@ -35,14 +35,18 @@ export const POST = async (req, res) => {
     7. If the user asks to highlight specific text, content, or an element on the page (e.g. "highlight React", "highlight the skills section", "show me where Python is mentioned"), use the 'highlightText' tool.
        - Provide the 'query' parameter with the text or keyword to search for and highlight.
        - Example: query: "React" or query: "Python"
-    8. If you can't find the answer and can't find a link, say you don't know.
-    9. NEVER call any tool with empty arguments.
+    8. If the user asks to focus on, zoom into, or closely examine a specific section (e.g. "focus on skills", "zoom into the projects section", "let me see the contact form closely"), use the 'focusSection' tool.
+       - This will dim the rest of the page and zoom into the target section.
+       - Provide the 'section' parameter with the section name.
+       - Example: section: "skills" or section: "projects"
+    9. If you can't find the answer and can't find a link, say you don't know.
+    10. NEVER call any tool with empty arguments.
   `;
         console.log("-------------------------", systemPrompt);
 
         console.log("links----------------", links);
         const { text, toolCalls } = await generateText({
-            model: google("gemini-3-flash-preview"),
+            model: google("gemini-2.5-flash"),
             system: systemPrompt,
             prompt: `${prompt}`,
             tools: {
@@ -84,6 +88,12 @@ export const POST = async (req, res) => {
                     description: 'Highlights text or elements on the page. Use this when the user asks to highlight, show, or point out specific text, skills, keywords, or sections (e.g., "highlight React", "show me Python", "point out the skills").',
                     parameters: z.object({
                         query: z.string().describe('The text, keyword, or section name to search for and highlight on the page.'),
+                    }),
+                }),
+                focusSection: tool({
+                    description: 'Focuses on and zooms into a specific section of the page, dimming everything else. Use this when the user asks to focus on, zoom into, or examine a section closely (e.g., "focus on skills", "zoom into projects", "let me see the experience section").',
+                    parameters: z.object({
+                        section: z.string().describe('The name of the section to focus on (e.g., "skills", "projects", "experience", "contact")'),
                     }),
                 }),
             },
