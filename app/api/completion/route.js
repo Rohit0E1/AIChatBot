@@ -48,7 +48,7 @@ export const POST = async (req, res) => {
         console.log("-------------------------", systemPrompt);
         console.log("links----------------", links);
         const { text, toolCalls } = await generateText({
-            model: google("gemini-2.5-flash-lite"),
+            model: google("gemini-3-flash-preview"),
             system: systemPrompt,
             prompt: `${prompt}`,
             tools: {
