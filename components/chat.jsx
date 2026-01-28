@@ -231,6 +231,53 @@ export default function Chat() {
                                 }
                             });
                         }
+                    } else if (toolCall.toolName === 'highlightText') {
+                        console.log("Executing highlightText tool", args);
+                        const query = args?.query;
+
+                        if (query) {
+                            // Search for elements containing the query text
+                            const lowerQuery = query.toLowerCase();
+
+                            // Get all text-containing elements
+                            const allElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, li, a, div, section, article');
+                            let foundElements = [];
+
+                            allElements.forEach(el => {
+                                // Check if this element directly contains the text (not just through children)
+                                const directText = Array.from(el.childNodes)
+                                    .filter(node => node.nodeType === Node.TEXT_NODE)
+                                    .map(node => node.textContent)
+                                    .join('');
+
+                                if (directText.toLowerCase().includes(lowerQuery) ||
+                                    el.innerText?.toLowerCase().includes(lowerQuery)) {
+                                    foundElements.push(el);
+                                }
+                            });
+
+                            // Find the most specific (smallest) matching element
+                            if (foundElements.length > 0) {
+                                // Sort by content length (smaller = more specific)
+                                foundElements.sort((a, b) => (a.innerText?.length || 0) - (b.innerText?.length || 0));
+
+                                const element = foundElements[0];
+                                console.log(`Found element to highlight:`, element);
+
+                                // Add highlight class
+                                element.classList.add('ai-highlight');
+
+                                // Scroll into view
+                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                                // Remove highlight after 3 seconds
+                                setTimeout(() => {
+                                    element.classList.remove('ai-highlight');
+                                }, 3000);
+                            } else {
+                                console.warn(`No element found containing: ${query}`);
+                            }
+                        }
                     }
                 });
             }
@@ -249,7 +296,8 @@ export default function Chat() {
                     scrollPage: "Scrolling for you... 📜",
                     changePage: "Navigating to that page... 🧭",
                     goBack: "Going back... ⬅️",
-                    fillInput: "Filling that form for you... ✍️"
+                    fillInput: "Filling that form for you... ✍️",
+                    highlightText: "Highlighting that for you... ✨"
                 };
 
                 const toolCall = res.toolCalls[0];

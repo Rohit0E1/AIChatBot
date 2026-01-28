@@ -32,8 +32,11 @@ export const POST = async (req, res) => {
     6. If the user asks to fill a form or input fields (e.g. "fill my email as test@test.com", "put John in the name field"), use the 'fillInput' tool.
        - Provide the 'inputs' parameter which must be an array of objects with 'selector' and 'value'.
        - Example: inputs: [{ selector: "email", value: "test@test.com" }]
-    7. If you can't find the answer and can't find a link, say you don't know.
-    8. NEVER call any tool with empty arguments.
+    7. If the user asks to highlight specific text, content, or an element on the page (e.g. "highlight React", "highlight the skills section", "show me where Python is mentioned"), use the 'highlightText' tool.
+       - Provide the 'query' parameter with the text or keyword to search for and highlight.
+       - Example: query: "React" or query: "Python"
+    8. If you can't find the answer and can't find a link, say you don't know.
+    9. NEVER call any tool with empty arguments.
   `;
         console.log("-------------------------", systemPrompt);
 
@@ -75,6 +78,12 @@ export const POST = async (req, res) => {
                             selector: z.string().describe('The ID, name, or label of the input field (e.g., "email", "name", "subject").'),
                             value: z.string().describe('The value to fill into the input field.'),
                         })).describe('Array of input fields to fill'),
+                    }),
+                }),
+                highlightText: tool({
+                    description: 'Highlights text or elements on the page. Use this when the user asks to highlight, show, or point out specific text, skills, keywords, or sections (e.g., "highlight React", "show me Python", "point out the skills").',
+                    parameters: z.object({
+                        query: z.string().describe('The text, keyword, or section name to search for and highlight on the page.'),
                     }),
                 }),
             },
